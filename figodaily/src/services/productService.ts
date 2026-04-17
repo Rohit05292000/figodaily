@@ -2,30 +2,43 @@ import axios, { AxiosError } from "axios";
 
 const BASE_URL = "http://13.205.63.126/api";
 
+
+// =========================
+// 🔥 DEAL PRODUCTS
+// =========================
 export const getDealProducts = async (storeId: number) => {
-    console.log("🔥 API CALLED: getDealProducts");
+  console.log("🔥 API CALLED: getDealProducts");
+
   try {
     const response = await axios.get(
       `${BASE_URL}/dealproduct?store_id=${storeId}`
     );
-    return response.data.data;
+
+    console.log("🔥 FULL RESPONSE:", response.data);
+
+    return response.data?.data ?? [];
   } catch (error) {
-    console.log("API Error:", error);
-    throw error;
+    console.log("API Error (Deal Products):", error);
+    return [];
   }
 };
 
+
+// =========================
+// ⚡ FLASH DEALS
+// =========================
 export const getFlashDeals = async (storeId: number) => {
-   console.log("🔥 API CALLED: getFlashDeals");
+  console.log("🔥 API CALLED: getFlashDeals");
+
   try {
     const response = await axios.get(
       `${BASE_URL}/flashdeal?store_id=${storeId}`
     );
 
-    console.log("FLASH RESPONSE:", response.data);
+    console.log("🔥 FULL RESPONSE:", response.data);
 
     if (response.data?.status === "1") {
-      return response.data.data || [];
+      return response.data?.data ?? [];
     }
 
     return [];
@@ -36,17 +49,20 @@ export const getFlashDeals = async (storeId: number) => {
 };
 
 
-export interface Category {
+// =========================
+// 🔥 TRENDING PRODUCTS
+// =========================
+export interface TrendingItem {
+  cat_id: number;
   title: string;
   image: string;
-  description: string;
-  cat_id: number;
-  count: number;
+  description?: string;
+  count?: number;
 }
 
 export const getTrendingProducts = async (
   storeId: number
-): Promise<Category[]> => {
+): Promise<TrendingItem[]> => {
   try {
     const response = await axios.post(`${BASE_URL}/topsix`, {
       store_id: storeId,
@@ -55,7 +71,7 @@ export const getTrendingProducts = async (
     console.log("TOP SIX RESPONSE:", response.data);
 
     if (response.data?.status === "1") {
-      return response.data.data || [];
+      return (response.data?.data ?? []) as TrendingItem[];
     }
 
     return [];
@@ -66,7 +82,9 @@ export const getTrendingProducts = async (
 };
 
 
-
+// =========================
+// 📦 CATEGORIES
+// =========================
 export interface SubChild {
   cat_id: number;
   title: string;
@@ -93,14 +111,14 @@ export const getCategories = async (
   try {
     const response = await axios.get(`${BASE_URL}/catee`, {
       params: {
-        storeid: storeId, // ⚠️ note: API uses "storeid" not "store_id"
+        storeid: storeId,
       },
     });
 
     console.log("CATEGORIES RESPONSE:", response.data);
 
     if (response.data?.status === "1") {
-      return response.data.data || [];
+      return (response.data?.data ?? []) as Category[];
     }
 
     return [];
@@ -111,7 +129,20 @@ export const getCategories = async (
 };
 
 
-export const searchProducts = async (keyword: string, storeId: number) => {
+// =========================
+// 🔍 SEARCH PRODUCTS
+// =========================
+export interface SearchProduct {
+  product_id: number;
+  product_name: string;
+  product_image: string;
+  price: number;
+}
+
+export const searchProducts = async (
+  keyword: string,
+  storeId: number
+): Promise<SearchProduct[]> => {
   try {
     const response = await axios.post(`${BASE_URL}/search_ios`, {
       keyword,
@@ -121,13 +152,12 @@ export const searchProducts = async (keyword: string, storeId: number) => {
     console.log("🟢 SEARCH RESPONSE:", response.data);
 
     if (response.data?.status === "1") {
-      return response.data?.data || [];
+      return response.data?.data ?? [];
     }
 
     return [];
   } catch (error) {
     const err = error as AxiosError<any>;
-
     console.log("❌ Search API Error:", err.response?.data || err.message);
 
     return [];
